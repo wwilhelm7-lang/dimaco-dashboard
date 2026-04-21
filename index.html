@@ -1,550 +1,79 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Jefatura — DIMACO Constitución CDK9</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef1f6;color:#1a1a2e;font-size:14px;min-height:100vh}
-    .wrap{max-width:1300px;margin:0 auto;padding:20px 16px}
-
-    /* HEADER */
-    .header{background:linear-gradient(135deg,#0a1a3d 0%,#1a3a6b 55%,#2955a3 100%);color:#fff;padding:24px 30px;border-radius:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 8px 30px rgba(10,26,61,.4)}
-    .hdr-logo{display:flex;align-items:center;gap:14px}
-    .hdr-icon{width:46px;height:46px;background:rgba(255,255,255,.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
-    .hdr-title{font-size:20px;font-weight:800;letter-spacing:.3px}
-    .hdr-sub{font-size:12px;opacity:.72;margin-top:2px}
-    .hdr-right{text-align:right}
-    .hdr-mes{font-size:22px;font-weight:800;letter-spacing:.5px}
-    .hdr-upd{font-size:11px;opacity:.72;margin-top:3px}
-    .hdr-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);padding:4px 12px;border-radius:20px;font-size:11.5px;margin-top:5px;font-weight:600}
-
-    /* ALERT SLA */
-    .sla-note{background:#fff8e1;border-left:4px solid #f9a825;border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:12.5px;color:#4a3500;line-height:1.65}
-    .sla-note strong{color:#b45a00}
-
-    /* SECTION LABEL */
-    .sec-label{font-size:12px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:1px;margin:20px 0 12px;display:flex;align-items:center;gap:8px}
-    .sec-label::after{content:'';flex:1;height:1px;background:#dde2ec}
-
-    /* KPI GRID */
-    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;margin-bottom:20px}
-    .kpi{background:#fff;border-radius:12px;padding:18px 15px;box-shadow:0 2px 10px rgba(0,0,0,.07);border-top:3px solid var(--c,#1a3a6b);position:relative;overflow:hidden;transition:transform .15s}
-    .kpi:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.11)}
-    .kpi::before{content:'';position:absolute;right:-10px;top:-10px;width:56px;height:56px;border-radius:50%;background:var(--c,#1a3a6b);opacity:.05}
-    .kpi-val{font-size:26px;font-weight:800;color:var(--c,#1a3a6b);line-height:1.1}
-    .kpi-lbl{font-size:11px;color:#555;margin-top:5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
-    .kpi-sub{font-size:11px;color:#aaa;margin-top:2px}
-
-    /* PANEL */
-    .panel{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:20px;overflow:hidden}
-    .panel-hdr{padding:15px 22px;display:flex;justify-content:space-between;align-items:center;color:#fff;flex-wrap:wrap;gap:8px}
-    .panel-hdr-title{font-size:14px;font-weight:800;letter-spacing:.2px;display:flex;align-items:center;gap:7px}
-    .panel-hdr-meta{font-size:11.5px;opacity:.9;display:flex;gap:8px;flex-wrap:wrap}
-    .panel-hdr-meta span{background:rgba(255,255,255,.18);padding:3px 11px;border-radius:12px;font-weight:600}
-    .panel-body{padding:20px 22px}
-    .panel-sub-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
-    .sub-kpi{border-radius:10px;padding:14px;text-align:center}
-    .sub-kpi-val{font-size:22px;font-weight:800;line-height:1}
-    .sub-kpi-lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-top:4px;opacity:.75}
-
-    /* CHART CARD */
-    .chart-card{background:#fff;border-radius:14px;padding:20px 22px;box-shadow:0 2px 10px rgba(0,0,0,.07);margin-bottom:20px}
-    .chart-title{font-size:13px;font-weight:800;color:#222;margin-bottom:3px}
-    .chart-sub{font-size:11px;color:#999;margin-bottom:14px}
-    .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
-    .chart-grid-3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin-bottom:20px}
-
-    /* TABLE */
-    .tbl-wrap{overflow-x:auto}
-    table{width:100%;border-collapse:collapse;font-size:12.5px}
-    thead th{background:#f5f7fb;padding:10px 13px;text-align:right;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:#666;border-bottom:2px solid #e4e8f0;white-space:nowrap;font-weight:700}
-    thead th:first-child{text-align:left}
-    tbody td{padding:11px 13px;text-align:right;border-bottom:1px solid #f0f3f8;vertical-align:middle}
-    tbody td:first-child{text-align:left}
-    tbody tr:last-child td{border-bottom:none}
-    tbody tr:hover{background:#f8f9ff}
-
-    /* BADGES */
-    .b-ok{background:#e6f4ea;color:#1b6b3a;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700}
-    .b-warn{background:#fff3e0;color:#b45a00;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700}
-    .b-bad{background:#ffebee;color:#c62828;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700}
-    .b-neu{background:#f0f0f0;color:#888;padding:3px 9px;border-radius:6px;font-size:11px}
-
-    /* BARRA PORCENTAJE */
-    .pbar{display:flex;align-items:center;gap:7px;justify-content:flex-end}
-    .pbar-bg{width:60px;height:7px;background:#e8eaf0;border-radius:4px;overflow:hidden;flex-shrink:0}
-    .pbar-fill{height:100%;border-radius:4px;transition:width .4s}
-    .pval{min-width:38px;text-align:right;font-weight:700;font-size:12px}
-
-    /* BONO CARDS */
-    .bono-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-    .bono-card{border-radius:12px;padding:16px;border:2px solid}
-    .bono-card.ok{border-color:#2d7a4f;background:#f1fdf5}
-    .bono-card.no{border-color:#c62828;background:#fff5f5}
-    .bono-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 11px;border-radius:12px;font-size:11px;font-weight:800;color:#fff}
-    .bono-badge.ok{background:#2d7a4f}
-    .bono-badge.no{background:#c62828}
-    .bono-name{font-weight:800;font-size:13px;color:#222}
-    .bono-detail{font-size:11.5px;color:#555;margin-top:9px;display:flex;flex-direction:column;gap:4px}
-
-    /* RANK */
-    .rk1{color:#f59e0b;font-size:14px}
-    .rk2{color:#9ca3af;font-size:14px}
-    .rk3{color:#b45309;font-size:14px}
-
-    /* OP NAME */
-    .op-name{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:12.5px;color:#1a1a2e}
-    .op-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-
-    /* FALLBACK */
-    .fallback-msg{background:#fff3e0;border-left:4px solid #f9a825;border-radius:8px;padding:14px 18px;font-size:12px;color:#5a3a00}
-
-    /* FOOTER */
-    .footer{text-align:center;color:#c0c7d4;font-size:11px;margin-top:24px;padding-bottom:20px;border-top:1px solid #e4e8f0;padding-top:16px}
-
-    /* LOADING */
-    #loading{text-align:center;padding:100px 20px;color:#888;font-size:15px}
-    #loading-spin{display:inline-block;width:36px;height:36px;border:3px solid #e0e4ef;border-top-color:#1a3a6b;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    #error-box{display:none;background:#ffebee;border-radius:12px;padding:30px;text-align:center;color:#c62828;font-size:14px;margin:20px 0}
-
-    @media(max-width:768px){
-      .header{flex-direction:column;gap:12px}.hdr-right{text-align:left}
-      .kpi-grid{grid-template-columns:repeat(2,1fr)}
-      .chart-grid,.chart-grid-3{grid-template-columns:1fr}
-      .panel-hdr{flex-direction:column;align-items:flex-start}
-      .panel-sub-kpis{grid-template-columns:1fr 1fr 1fr}
-    }
-    @media(max-width:480px){
-      .kpi-grid{grid-template-columns:repeat(2,1fr)}
-      .panel-sub-kpis{grid-template-columns:1fr}
-    }
-  </style>
-</head>
-<body>
-<div class="wrap">
-  <div id="loading">
-    <div id="loading-spin"></div>
-    <div>Cargando datos del centro de distribución...</div>
-  </div>
-  <div id="error-box"></div>
-  <div id="app" style="display:none"></div>
-</div>
-
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard Jefatura DIMACO CDK9 — 2026-04</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef1f6;color:#1a1a2e;font-size:14px}.wrap{max-width:1300px;margin:0 auto;padding:20px 16px}.header{background:linear-gradient(135deg,#0a1a3d,#1a3a6b 55%,#2955a3);color:#fff;padding:24px 30px;border-radius:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 8px 30px rgba(10,26,61,.4)}.hdr-logo{display:flex;align-items:center;gap:14px}.hdr-icon{width:46px;height:46px;background:rgba(255,255,255,.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}.hdr-title{font-size:20px;font-weight:800}.hdr-sub{font-size:12px;opacity:.72;margin-top:2px}.hdr-right{text-align:right}.hdr-mes{font-size:22px;font-weight:800}.hdr-upd{font-size:11px;opacity:.72;margin-top:3px}.hdr-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);padding:4px 12px;border-radius:20px;font-size:11.5px;margin-top:5px;font-weight:600}.sla-note{background:#fff8e1;border-left:4px solid #f9a825;border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:12.5px;color:#4a3500;line-height:1.65}.sla-note strong{color:#b45a00}.sec-label{font-size:12px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:1px;margin:20px 0 12px;display:flex;align-items:center;gap:8px}.sec-label::after{content:'';flex:1;height:1px;background:#dde2ec}.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;margin-bottom:20px}.kpi{background:#fff;border-radius:12px;padding:18px 15px;box-shadow:0 2px 10px rgba(0,0,0,.07);border-top:3px solid var(--c,#1a3a6b);position:relative;overflow:hidden}.kpi::before{content:'';position:absolute;right:-10px;top:-10px;width:56px;height:56px;border-radius:50%;background:var(--c);opacity:.05}.kpi-val{font-size:26px;font-weight:800;color:var(--c,#1a3a6b);line-height:1.1}.kpi-lbl{font-size:11px;color:#555;margin-top:5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700}.kpi-sub{font-size:11px;color:#aaa;margin-top:2px}.panel{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:20px;overflow:hidden}.panel-hdr{padding:15px 22px;display:flex;justify-content:space-between;align-items:center;color:#fff;flex-wrap:wrap;gap:8px}.panel-hdr-title{font-size:14px;font-weight:800;display:flex;align-items:center;gap:7px}.panel-hdr-meta{font-size:11.5px;opacity:.9;display:flex;gap:8px;flex-wrap:wrap}.panel-hdr-meta span{background:rgba(255,255,255,.18);padding:3px 11px;border-radius:12px;font-weight:600}.panel-body{padding:20px 22px}.panel-sub-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}.sub-kpi{border-radius:10px;padding:14px;text-align:center}.sub-kpi-val{font-size:22px;font-weight:800;line-height:1}.sub-kpi-lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-top:4px;opacity:.75}.chart-card{background:#fff;border-radius:14px;padding:20px 22px;box-shadow:0 2px 10px rgba(0,0,0,.07);margin-bottom:20px}.chart-title{font-size:13px;font-weight:800;color:#222;margin-bottom:3px}.chart-sub{font-size:11px;color:#999;margin-bottom:14px}.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}.tbl-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12.5px}thead th{background:#f5f7fb;padding:10px 13px;text-align:right;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:#666;border-bottom:2px solid #e4e8f0;white-space:nowrap;font-weight:700}thead th:first-child{text-align:left}tbody td{padding:11px 13px;text-align:right;border-bottom:1px solid #f0f3f8;vertical-align:middle}tbody td:first-child{text-align:left}tbody tr:last-child td{border-bottom:none}tbody tr:hover{background:#f8f9ff}.b-ok{background:#e6f4ea;color:#1b6b3a;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700}.b-warn{background:#fff3e0;color:#b45a00;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700}.b-bad{background:#ffebee;color:#c62828;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700}.b-neu{background:#f0f0f0;color:#888;padding:3px 9px;border-radius:6px;font-size:11px}.pbar{display:flex;align-items:center;gap:7px;justify-content:flex-end}.pbar-bg{width:60px;height:7px;background:#e8eaf0;border-radius:4px;overflow:hidden;flex-shrink:0}.pbar-fill{height:100%;border-radius:4px}.pval{min-width:38px;text-align:right;font-weight:700;font-size:12px}.bono-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}.bono-card{border-radius:12px;padding:16px;border:2px solid}.bono-card.ok{border-color:#2d7a4f;background:#f1fdf5}.bono-card.no{border-color:#c62828;background:#fff5f5}.bono-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 11px;border-radius:12px;font-size:11px;font-weight:800;color:#fff}.bono-badge.ok{background:#2d7a4f}.bono-badge.no{background:#c62828}.bono-name{font-weight:800;font-size:13px;color:#222}.bono-detail{font-size:11.5px;color:#555;margin-top:9px;display:flex;flex-direction:column;gap:4px}.rk1{color:#f59e0b}.rk2{color:#9ca3af}.rk3{color:#b45309}.op-name{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:12.5px}.op-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}.footer{text-align:center;color:#c0c7d4;font-size:11px;margin-top:24px;padding:16px 0 20px;border-top:1px solid #e4e8f0}@media(max-width:768px){.header{flex-direction:column;gap:12px}.kpi-grid{grid-template-columns:repeat(2,1fr)}.chart-grid{grid-template-columns:1fr}.panel-hdr{flex-direction:column}.panel-sub-kpis{grid-template-columns:repeat(3,1fr)}}</style>
+</head><body><div class="wrap"><div id="app"></div></div>
 <script>
-var BIN_ID     = '69e6530e36566621a8d2bdd5';
-var ACCESS_KEY = '$2a$10$uUUfcGJy4ZbmgnpiDt5jhOFmVe2fE8r9OvLFzZJwxAQFsqN5bz1nK';
-
-var OP_COLORS = {
-  'JULIAN':'#1a3a6b','ADRIAN':'#2d7a4f','SILVIO':'#7b3fa6',
-  'RAUL':'#b45a00','FABIAN':'#c62828','DEFAULT':'#546e7a'
-};
-function opColor(n){ return OP_COLORS[String(n||'').toUpperCase().split(' ')[0]] || OP_COLORS['DEFAULT']; }
-
-async function cargarDatos(){
-  var r = await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest',{
-    headers:{'X-Bin-Meta':'false','X-Access-Key':ACCESS_KEY},cache:'no-store'
-  });
-  if(!r.ok) throw new Error('HTTP '+r.status);
-  return r.json();
-}
-
-/* ── Helpers ──────────────────────────────────── */
-function badge(v){
-  if(v==null) return '<span class="b-neu">—</span>';
-  if(v>=80)   return '<span class="b-ok">'+v+'%</span>';
-  if(v>=60)   return '<span class="b-warn">'+v+'%</span>';
-  return '<span class="b-bad">'+v+'%</span>';
-}
-function pctBar(v,color){
-  if(v==null) return '<span class="b-neu">—</span>';
-  var cls = v>=80?'b-ok':v>=60?'b-warn':'b-bad';
-  return '<div class="pbar">'
-    +'<div class="pbar-bg"><div class="pbar-fill" style="width:'+Math.min(v,100)+'%;background:'+color+'"></div></div>'
-    +'<span class="pval '+cls+'">'+v+'%</span></div>';
-}
-function ciclo(v){ return v!=null ? '<span style="font-weight:700">'+v+'</span> d' : '<span class="b-neu">—</span>'; }
-function kpiCard(val,lbl,sub,color){
-  return '<div class="kpi" style="--c:'+color+'">'
-    +'<div class="kpi-val">'+val+'</div>'
-    +'<div class="kpi-lbl">'+lbl+'</div>'
-    +'<div class="kpi-sub">'+sub+'</div></div>';
-}
-function subKpi(val,lbl,bg,tc){
-  return '<div class="sub-kpi" style="background:'+bg+'">'
-    +'<div class="sub-kpi-val" style="color:'+tc+'">'+val+'</div>'
-    +'<div class="sub-kpi-lbl" style="color:'+tc+'">'+lbl+'</div></div>';
-}
-function rankIcon(i){
-  if(i===0) return '<span class="rk1">🥇</span> ';
-  if(i===1) return '<span class="rk2">🥈</span> ';
-  if(i===2) return '<span class="rk3">🥉</span> ';
-  return '<span style="color:#aaa;font-size:11px">'+(i+1)+'.</span> ';
-}
-function opName(nombre,i){
-  var c=opColor(nombre);
-  return '<span class="op-name">'+rankIcon(i)+'<span class="op-dot" style="background:'+c+'"></span>'+nombre+'</span>';
-}
-function fmtFecha(iso){
-  if(!iso) return '—';
-  try{
-    var d=new Date(iso);
-    return d.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'})
-      +' '+d.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
-  }catch(e){ return iso; }
-}
-function wCalc(ops,key,field){
-  var t=0,s=0;
-  ops.forEach(function(o){
-    var sec=o[key]; if(!sec||!sec.total) return;
-    t+=sec.total;
-    s+=((sec[field]||0)*sec.total);
-  });
-  return t>0 ? (field==='pctCumpl'?Math.round(s/t):Math.round(s/t*10)/10) : null;
-}
-
-/* ── Render ───────────────────────────────────── */
-function renderApp(d){
-  var ops    = d.operarios||[];
-  var serie  = d.seriesDiaria||[];
-  var mes    = d.mesActual||d.mes||'—';
-  var pend   = d.totalPendientes!=null ? d.totalPendientes : '—';
-  var limErr = d.limiteErrores||5;
-  var fUpd   = fmtFecha(d.fecha);
-
-  /* globales — usar campos pre-calculados del payload para exacta paridad con la app */
-  var totalDesp = d.totalSKUs    != null ? d.totalSKUs    : ops.reduce(function(s,o){return s+(o.total||0);},0);
-  var diasReg   = d.diasRegistrados != null ? d.diasRegistrados : (ops.length ? Math.max.apply(null,ops.map(function(o){return o.dias||0;})) : 0);
-  var promDia   = d.promDia      != null ? d.promDia      : (diasReg ? Math.round(totalDesp/diasReg*10)/10 : 0);
-  var cicloW    = d.promCiclo    != null ? d.promCiclo    : null;
-  var pctW      = d.pct1dia      != null ? d.pct1dia      : null;
-  var totalErr  = d.totalErrores != null ? d.totalErrores : ops.reduce(function(s,o){return s+(o.errores||0);},0);
-  var opsBono   = ops.filter(function(o){return o.esBono;});
-  var bonosOk   = opsBono.filter(function(o){return o.bono==='SÍ';}).length;
-
-  /* split destino */
-  var tieneSplit  = ops.some(function(o){return (o.sucursales&&(o.sucursales.total||0)>0)||(o.cauquenes&&(o.cauquenes.total||0)>0);});
-  var modoFallback= !tieneSplit;
-  var sucTotal    = ops.reduce(function(s,o){return s+((o.sucursales&&o.sucursales.total)||0);},0);
-  var sucPct      = wCalc(ops,'sucursales','pctCumpl');
-  var sucCiclo    = wCalc(ops,'sucursales','promCiclo');
-  var caqTotal    = ops.reduce(function(s,o){return s+((o.cauquenes&&o.cauquenes.total)||0);},0);
-  var caqPct      = wCalc(ops,'cauquenes','pctCumpl');
-  var caqCiclo    = wCalc(ops,'cauquenes','promCiclo');
-  var pendColor   = typeof pend==='number'&&pend>100?'#c62828':typeof pend==='number'&&pend>50?'#b45a00':'#2d7a4f';
-
-  var html = '';
-
-  /* HEADER */
-  html += '<div class="header">'
-    +'<div class="hdr-logo">'
-    +'<div class="hdr-icon">🏭</div>'
-    +'<div><div class="hdr-title">Dashboard Operaciones · DIMACO</div>'
-    +'<div class="hdr-sub">Centro de Distribución Constitución &nbsp;·&nbsp; CDK9</div></div>'
-    +'</div>'
-    +'<div class="hdr-right">'
-    +'<div class="hdr-mes">'+mes+'</div>'
-    +'<div class="hdr-upd">Actualizado: '+fUpd+'</div>'
-    +'<div class="hdr-badge">📦 '+pend+' pedidos pendientes</div>'
-    +'</div></div>';
-
-  /* SLA NOTE */
-  html += '<div class="sla-note">'
-    +'<strong>⚠ Política de SLA por destino:</strong> '
-    +'Despachos a <strong>CAUQUENES</strong> tienen plazo de <strong>2 días hábiles</strong> (condicionado a disponibilidad de vehículo). '
-    +'El resto de destinos (Casa Matriz, Barraca de Fierro, Placa Centro, etc.) mantiene estándar de <strong>1 día hábil</strong>. '
-    +'Aplica a <strong>todos los operarios</strong>.'
-    +'</div>';
-
-  /* KPIs GLOBALES */
-  html += '<div class="sec-label">📊 Resumen General del Mes</div>';
-  html += '<div class="kpi-grid">';
-  html += kpiCard(totalDesp,'SKUs Despachados',mes,'#1a3a6b');
-  html += kpiCard(diasReg,'Días con Actividad','en el período','#2d7a4f');
-  html += kpiCard(promDia+' SKU','Promedio / Día','del centro','#7b3fa6');
-  html += kpiCard(pend,'Pedidos Pendientes','sin despachar',pendColor);
-  html += kpiCard(cicloW!=null?cicloW+' d':'—','T. Resp. Promedio','días hábiles','#b45a00');
-  html += kpiCard(pctW!=null?pctW+'%':'—','Cumplimiento SLA','sucursales + cauquenes',pctW>=80?'#2d7a4f':pctW>=60?'#b45a00':'#c62828');
-  html += kpiCard(totalErr,'Errores del Mes','total registrados',totalErr===0?'#2d7a4f':totalErr<=5?'#b45a00':'#c62828');
-  html += kpiCard(bonosOk+'/'+opsBono.length,'Bonos Aprobados','operarios calificados',bonosOk===opsBono.length&&opsBono.length>0?'#2d7a4f':'#b45a00');
-  html += '</div>';
-
-  /* FLUJO DIARIO */
-  html += '<div class="chart-card">'
-    +'<div class="chart-title">📈 Flujo Diario — SKUs Solicitados vs Despachados</div>'
-    +'<div class="chart-sub">Comportamiento del período · solicitados = líneas SAP del día · despachados = transferencias registradas</div>'
-    +'<canvas id="chart-flujo" height="85"></canvas>'
-    +'</div>';
-
-  /* SUCURSALES */
-  html += '<div class="panel">';
-  html += '<div class="panel-hdr" style="background:linear-gradient(90deg,#0d2147,#2a55a3)">'
-    +'<div class="panel-hdr-title">🏪 SUCURSALES — Plazo ≤ 1 Día Hábil</div>'
-    +'<div class="panel-hdr-meta">'
-    +'<span>'+sucTotal+' despachos</span>'
-    +'<span>'+(sucCiclo!=null?sucCiclo+' d prom.':'—')+'</span>'
-    +'<span>'+(sucPct!=null?sucPct+'% cumplimiento':'—')+'</span>'
-    +'</div></div>';
-  html += '<div class="panel-body">';
-  html += '<div class="panel-sub-kpis">'
-    +subKpi(sucTotal,'Despachos','#f0f4ff','#1a3a6b')
-    +subKpi(sucCiclo!=null?sucCiclo+' d':'—','T. Resp. Promedio','#fff8f0','#b45a00')
-    +subKpi(sucPct!=null?sucPct+'%':'—','Cumplimiento ≤1d',sucPct>=80?'#edfaf4':sucPct>=60?'#fff8f0':'#fff0f0',sucPct>=80?'#1b6b3a':sucPct>=60?'#b45a00':'#c62828')
-    +'</div>';
-
-  var sucOps = ops.filter(function(o){return o.sucursales&&o.sucursales.total>0;})
-                  .sort(function(a,b){return (b.sucursales.pctCumpl||0)-(a.sucursales.pctCumpl||0);});
-  html += '<div class="tbl-wrap"><table>';
-  html += '<thead><tr><th>Operario</th><th>SKUs</th><th>Prom/día</th><th>T. Resp.</th><th>Cumpl. ≤1d</th><th>Errores</th><th>Bono</th></tr></thead><tbody>';
-  if(!sucOps.length){
-    html += '<tr><td colspan="7" style="padding:16px">';
-    if(modoFallback){
-      html += '<div class="fallback-msg"><strong>⚠️ Datos sin separación por destino</strong><br>Para ver el split por destino, abre <strong>app_rendimiento_v4.html</strong>, carga el Excel de transferencias y publica con <strong>"Publicar a JSONBin"</strong>.</div>';
-    } else {
-      html += '<span style="color:#aaa;font-style:italic">Sin despachos a sucursales en el período</span>';
-    }
-    html += '</td></tr>';
-  } else {
-    sucOps.forEach(function(o,i){
-      var s=o.sucursales;
-      var bonoH = o.esBono
-        ? (o.bono==='SÍ'?'<span class="bono-badge ok" style="font-size:10.5px">✓ SÍ</span>':'<span class="bono-badge no" style="font-size:10.5px">✗ NO</span>')
-        : '<span class="b-neu">N/A</span>';
-      html += '<tr><td>'+opName(o.nombre,i)+'</td>'
-        +'<td style="font-weight:700">'+s.total+'</td>'
-        +'<td>'+(o.promDia!=null?o.promDia:'—')+'</td>'
-        +'<td>'+ciclo(s.promCiclo)+'</td>'
-        +'<td>'+pctBar(s.pctCumpl,'#1a3a6b')+'</td>'
-        +'<td>'+(o.errores>0?'<span class="b-bad">'+o.errores+'</span>':'<span class="b-ok">0</span>')+'</td>'
-        +'<td>'+bonoH+'</td></tr>';
-    });
-  }
-  html += '</tbody></table></div></div></div>';
-
-  /* CAUQUENES */
-  html += '<div class="panel">';
-  html += '<div class="panel-hdr" style="background:linear-gradient(90deg,#004d40,#00897b)">'
-    +'<div class="panel-hdr-title">🚛 CAUQUENES — Plazo ≤ 2 Días Hábiles</div>'
-    +'<div class="panel-hdr-meta">'
-    +'<span>'+caqTotal+' despachos</span>'
-    +'<span>'+(caqCiclo!=null?caqCiclo+' d prom.':'—')+'</span>'
-    +'<span>'+(caqPct!=null?caqPct+'% cumplimiento':'—')+'</span>'
-    +'</div></div>';
-  html += '<div class="panel-body">';
-  html += '<div class="panel-sub-kpis">'
-    +subKpi(caqTotal,'Despachos','#f0faf7','#00695c')
-    +subKpi(caqCiclo!=null?caqCiclo+' d':'—','T. Resp. Promedio','#fff8f0','#b45a00')
-    +subKpi(caqPct!=null?caqPct+'%':'—','Cumplimiento ≤2d',caqPct>=80?'#edfaf4':caqPct>=60?'#fff8f0':'#fff0f0',caqPct>=80?'#1b6b3a':caqPct>=60?'#b45a00':'#c62828')
-    +'</div>';
-
-  var caqOps = ops.filter(function(o){return o.cauquenes&&o.cauquenes.total>0;})
-                  .sort(function(a,b){return (b.cauquenes.pctCumpl||0)-(a.cauquenes.pctCumpl||0);});
-  html += '<div class="tbl-wrap"><table>';
-  html += '<thead><tr><th>Operario</th><th>SKUs</th><th>Prom/día</th><th>T. Resp.</th><th>Cumpl. ≤2d</th><th>Errores</th></tr></thead><tbody>';
-  if(!caqOps.length){
-    html += '<tr><td colspan="6" style="padding:16px">';
-    if(modoFallback){
-      html += '<div class="fallback-msg"><strong>⚠️ Datos sin separación por destino</strong><br>Publica desde <strong>app_rendimiento_v4.html</strong> para ver el detalle por destino.</div>';
-    } else {
-      html += '<span style="color:#aaa;font-style:italic">Sin despachos a Cauquenes en el período</span>';
-    }
-    html += '</td></tr>';
-  } else {
-    caqOps.forEach(function(o,j){
-      var c2=o.cauquenes;
-      html += '<tr><td>'+opName(o.nombre,j)+'</td>'
-        +'<td style="font-weight:700">'+c2.total+'</td>'
-        +'<td>'+(o.promDia!=null?o.promDia:'—')+'</td>'
-        +'<td>'+ciclo(c2.promCiclo)+'</td>'
-        +'<td>'+pctBar(c2.pctCumpl,'#00695c')+'</td>'
-        +'<td>'+(o.errores>0?'<span class="b-bad">'+o.errores+'</span>':'<span class="b-ok">0</span>')+'</td></tr>';
-    });
-  }
-  html += '</tbody></table></div></div></div>';
-
-  /* TABLA RESUMEN GENERAL */
-  html += '<div class="panel">';
-  html += '<div class="panel-hdr" style="background:linear-gradient(90deg,#37474f,#607d8b)">'
-    +'<div class="panel-hdr-title">📋 Resumen General por Operario</div></div>';
-  html += '<div class="panel-body"><div class="tbl-wrap"><table>';
-  html += '<thead><tr>'
-    +'<th>Operario</th><th>Total SKUs</th><th>Prom/día</th><th>T. Resp.</th>'
-    +'<th style="color:#1a3a6b">Suc ≤1d</th><th style="color:#00695c">Cauq ≤2d</th>'
-    +'<th>Errores</th><th>Bono</th></tr></thead><tbody>';
-  ops.filter(function(o){return (o.total||0)>0||(o.errores||0)>0;}).sort(function(a,b){return (b.total||0)-(a.total||0);}).forEach(function(op,k){
-    var bonoH = op.esBono
-      ? (op.bono==='SÍ'?'<span class="bono-badge ok" style="font-size:10.5px">✓ SÍ</span>':'<span class="bono-badge no" style="font-size:10.5px">✗ NO</span>')
-      : '<span class="b-neu">N/A</span>';
-    html += '<tr>'
-      +'<td>'+opName(op.nombre,k)+'</td>'
-      +'<td style="font-weight:700">'+op.total+'</td>'
-      +'<td>'+(op.promDia!=null?op.promDia:'—')+'</td>'
-      +'<td>'+ciclo(op.promCiclo)+'</td>'
-      +'<td>'+(op.sucursales&&op.sucursales.total>0?pctBar(op.sucursales.pctCumpl,'#1a3a6b'):'<span class="b-neu">—</span>')+'</td>'
-      +'<td>'+(op.cauquenes&&op.cauquenes.total>0?pctBar(op.cauquenes.pctCumpl,'#00695c'):'<span class="b-neu">—</span>')+'</td>'
-      +'<td>'+(op.errores>0?'<span class="b-bad">'+op.errores+'</span>':'<span class="b-ok">0</span>')+'</td>'
-      +'<td>'+bonoH+'</td></tr>';
-  });
-  html += '</tbody></table></div></div></div>';
-
-  /* BONOS */
-  if(opsBono.length>0){
-    html += '<div class="panel">';
-    html += '<div class="panel-hdr" style="background:linear-gradient(90deg,#4a2880,#7b52b5)">'
-      +'<div class="panel-hdr-title">🏆 Estado de Bonos — '+bonosOk+' de '+opsBono.length+' aprobados</div></div>';
-    html += '<div class="panel-body"><div class="bono-grid">';
-    opsBono.forEach(function(op){
-      var ok=op.bono==='SÍ';
-      html += '<div class="bono-card '+(ok?'ok':'no')+'">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-        +'<span class="bono-name" style="color:'+opColor(op.nombre)+'">'+op.nombre+'</span>'
-        +'<span class="bono-badge '+(ok?'ok':'no')+'">'+(ok?'✓ BONO':'✗ SIN BONO')+'</span>'
-        +'</div>'
-        +'<div class="bono-detail">'
-        +'<span>SKUs despachados: <strong>'+op.total+'</strong></span>'
-        +'<span>Errores: <strong style="color:'+(op.errores<=limErr?'#1b6b3a':'#c62828')+'">'+op.errores+'</strong> / límite '+limErr+'</span>'
-        +(op.sucursales&&op.sucursales.total>0?'<span>Suc ≤1d: '+badge(op.sucursales.pctCumpl)+'</span>':'')
-        +(op.cauquenes&&op.cauquenes.total>0?'<span>Cauq ≤2d: '+badge(op.cauquenes.pctCumpl)+'</span>':'')
-        +'</div></div>';
-    });
-    html += '</div></div></div>';
-  }
-
-  /* GRÁFICOS INFERIORES */
-  html += '<div class="sec-label">📉 Análisis por Operario</div>';
-  html += '<div class="chart-grid">'
-    +'<div class="chart-card" style="margin-bottom:0">'
-    +'<div class="chart-title">Producción — SKUs totales por operario</div>'
-    +'<div class="chart-sub">Total de transferencias despachadas en el período</div>'
-    +'<canvas id="chart-prod" height="180"></canvas></div>'
-    +'<div class="chart-card" style="margin-bottom:0">'
-    +'<div class="chart-title">Tiempo de respuesta promedio (días)</div>'
-    +'<div class="chart-sub">Ciclo solicitud → despacho por operario</div>'
-    +'<canvas id="chart-ciclo" height="180"></canvas></div>'
-    +'</div>';
-  html += '<div class="chart-grid" style="margin-top:16px">'
-    +'<div class="chart-card" style="margin-bottom:0">'
-    +'<div class="chart-title">Cumplimiento SLA — Sucursales vs Cauquenes</div>'
-    +'<div class="chart-sub">% dentro del plazo por operario y tipo de destino</div>'
-    +'<canvas id="chart-sla" height="180"></canvas></div>'
-    +'<div class="chart-card" style="margin-bottom:0">'
-    +'<div class="chart-title">Errores por tipo — '+mes+'</div>'
-    +'<div class="chart-sub">Distribución de errores registrados en el período</div>'
-    +'<canvas id="chart-err" height="180"></canvas></div>'
-    +'</div>';
-
-  /* FOOTER */
-  html += '<div class="footer">DIMACO Constitución &nbsp;·&nbsp; Centro de Distribución CDK9 &nbsp;·&nbsp; Sistema de Gestión de Rendimiento Operacional &nbsp;·&nbsp; '+new Date().getFullYear()+'</div>';
-
-  /* INYECTAR */
-  document.getElementById('app').innerHTML = html;
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('loading').style.display = 'none';
-
-  /* ── CHART FLUJO DIARIO ────────────────────────────── */
-  if(serie.length>0){
-    new Chart(document.getElementById('chart-flujo'),{
-      type:'line',
-      data:{
-        labels:serie.map(function(s){var p=String(s.fecha||'').split('-');return p.length===3?p[2]+'/'+p[1]:s.fecha;}),
-        datasets:[
-          {label:'SKUs Solicitados',data:serie.map(function(s){return s.solicitados||0;}),
-           borderColor:'#1a3a6b',backgroundColor:'rgba(26,58,107,0.08)',tension:0.35,fill:true,pointRadius:4,borderWidth:2.5},
-          {label:'SKUs Despachados',data:serie.map(function(s){return s.despachados||0;}),
-           borderColor:'#2d7a4f',backgroundColor:'rgba(45,122,79,0.08)',tension:0.35,fill:true,pointRadius:4,borderWidth:2.5}
-        ]
-      },
-      options:{responsive:true,interaction:{mode:'index',intersect:false},
-        plugins:{legend:{position:'top',labels:{font:{size:12},padding:16}}},
-        scales:{y:{beginAtZero:true,grid:{color:'#f0f2f5'},ticks:{font:{size:11}}},
-          x:{grid:{display:false},ticks:{font:{size:11},maxRotation:45}}}}
-    });
-  } else {
-    var el=document.getElementById('chart-flujo');
-    if(el) el.insertAdjacentHTML('afterend','<div style="text-align:center;padding:20px;color:#b45a00;font-size:12px">Carga el SAP diario en la app para registrar SKUs solicitados por día.</div>');
-  }
-
-  /* ── CHART PRODUCCIÓN ──────────────────────────────── */
-  var opsCon = ops.filter(function(o){return (o.total||0)>0;}).sort(function(a,b){return (b.total||0)-(a.total||0);});
-  new Chart(document.getElementById('chart-prod'),{
-    type:'bar',
-    data:{labels:opsCon.map(function(o){return o.nombre;}),
-      datasets:[{label:'SKUs despachados',data:opsCon.map(function(o){return o.total;}),
-        backgroundColor:opsCon.map(function(o){return opColor(o.nombre)+'cc';}),
-        borderColor:opsCon.map(function(o){return opColor(o.nombre);}),
-        borderWidth:2,borderRadius:6}]},
-    options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},
-      scales:{x:{beginAtZero:true,ticks:{font:{size:11}}},y:{ticks:{font:{size:12,weight:'700'}}}}}
-  });
-
-  /* ── CHART CICLO ───────────────────────────────────── */
-  var opsCiclo=ops.filter(function(o){return o.promCiclo!=null;}).sort(function(a,b){return (a.promCiclo||0)-(b.promCiclo||0);});
-  new Chart(document.getElementById('chart-ciclo'),{
-    type:'bar',
-    data:{labels:opsCiclo.map(function(o){return o.nombre;}),
-      datasets:[{label:'días promedio',data:opsCiclo.map(function(o){return o.promCiclo;}),
-        backgroundColor:opsCiclo.map(function(o){return o.promCiclo<=1?'#2d7a4fcc':o.promCiclo<=2?'#b45a00cc':'#c62828cc';}),
-        borderColor:opsCiclo.map(function(o){return o.promCiclo<=1?'#2d7a4f':o.promCiclo<=2?'#b45a00':'#c62828';}),
-        borderWidth:2,borderRadius:6}]},
-    options:{responsive:true,plugins:{legend:{display:false}},
-      scales:{y:{beginAtZero:true,max:Math.max(3,Math.max.apply(null,opsCiclo.map(function(o){return o.promCiclo||0;})))+0.5,
-        ticks:{font:{size:11}}},x:{ticks:{font:{size:11}}}}}
-  });
-
-  /* ── CHART SLA SPLIT ───────────────────────────────── */
-  var opsSLA=ops.filter(function(o){return (o.sucursales&&o.sucursales.total>0)||(o.cauquenes&&o.cauquenes.total>0);});
-  if(opsSLA.length>0){
-    new Chart(document.getElementById('chart-sla'),{
-      type:'bar',
-      data:{labels:opsSLA.map(function(o){return o.nombre;}),
-        datasets:[
-          {label:'Suc ≤1d (%)',data:opsSLA.map(function(o){return o.sucursales&&o.sucursales.pctCumpl!=null?o.sucursales.pctCumpl:null;}),
-           backgroundColor:'#1a3a6bcc',borderColor:'#1a3a6b',borderWidth:2,borderRadius:4},
-          {label:'Cauq ≤2d (%)',data:opsSLA.map(function(o){return o.cauquenes&&o.cauquenes.pctCumpl!=null?o.cauquenes.pctCumpl:null;}),
-           backgroundColor:'#00695ccc',borderColor:'#00695c',borderWidth:2,borderRadius:4}
-        ]},
-      options:{responsive:true,
-        plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12}}},
-        scales:{y:{beginAtZero:true,max:105,ticks:{font:{size:11},callback:function(v){return v+'%';}},
-          grid:{color:function(ctx){return ctx.tick.value===80?'#c6282860':'#f0f0f0';}}},
-          x:{ticks:{font:{size:11}}}}}
-    });
-  } else {
-    var slaEl=document.getElementById('chart-sla');
-    if(slaEl) slaEl.insertAdjacentHTML('afterend','<div style="text-align:center;padding:20px;color:#b45a00;font-size:12px">Publica desde la app para ver datos por destino.</div>');
-  }
-
-  /* ── CHART ERRORES POR TIPO (igual que la app) ─────── */
-  var tiposErr = (d.erroresPorTipo||[]).filter(function(x){return x.count>0;});
-  var errEl=document.getElementById('chart-err');
-  if(tiposErr.length>0){
-    new Chart(errEl,{
-      type:'doughnut',
-      data:{
-        labels:tiposErr.map(function(x){return x.tipo;}),
-        datasets:[{data:tiposErr.map(function(x){return x.count;}),
-          backgroundColor:['#a32d2d','#b45a00','#1a3a6b','#7b1fa2','#2d7a4f','#37474f','#00695c'],
-          borderWidth:2}]
-      },
-      options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10.5},boxWidth:11,padding:10}}}}
-    });
-  } else {
-    if(errEl) errEl.insertAdjacentHTML('afterend','<div style="text-align:center;padding:28px;color:#2d7a4f;font-weight:800;font-size:13px">✓ Sin errores registrados en el período</div>');
-  }
-}
-
-/* INIT */
-cargarDatos().then(function(data){
-  renderApp(data);
-}).catch(function(e){
-  document.getElementById('loading').style.display='none';
-  var eb=document.getElementById('error-box');
-  eb.style.display='block';
-  eb.innerHTML='❌ Error al cargar datos: <strong>'+e.message+'</strong><br><small style="color:#888;display:block;margin-top:8px">Verifica tu conexión a internet y que el BIN_ID sea correcto.</small>';
-});
-</script>
-</body>
-</html>
+var DATA={"fecha":"2026-04-21T21:25:42.851Z","mesActual":"2026-04","mes":"2026-04","totalSKUs":2136,"totalErrores":17,"diasRegistrados":14,"promDia":152.6,"promCiclo":1.5,"pct1dia":68,"limiteErrores":10,"totalPendientes":348,"operarios":[{"nombre":"ADRIAN","total":321,"dias":14,"promDia":22.9,"promCiclo":0.8,"pct1dia":81,"errores":2,"esBono":true,"bono":"SÍ","sucursales":{"total":246,"promCiclo":0.6,"pctCumpl":82},"cauquenes":{"total":75,"promCiclo":1.7,"pctCumpl":79}},{"nombre":"FABIAN","total":296,"dias":13,"promDia":22.8,"promCiclo":1.3,"pct1dia":67,"errores":7,"esBono":true,"bono":"SÍ","sucursales":{"total":229,"promCiclo":1.2,"pctCumpl":62},"cauquenes":{"total":67,"promCiclo":1.7,"pctCumpl":84}},{"nombre":"SILVIO","total":182,"dias":13,"promDia":14,"promCiclo":0.9,"pct1dia":82,"errores":0,"esBono":true,"bono":"SÍ","sucursales":{"total":132,"promCiclo":0.6,"pctCumpl":83},"cauquenes":{"total":50,"promCiclo":1.5,"pctCumpl":80}},{"nombre":"RAUL","total":272,"dias":14,"promDia":19.4,"promCiclo":1.1,"pct1dia":81,"errores":5,"esBono":true,"bono":"SÍ","sucursales":{"total":199,"promCiclo":0.9,"pctCumpl":79},"cauquenes":{"total":73,"promCiclo":1.8,"pctCumpl":86}},{"nombre":"JULIAN","total":365,"dias":14,"promDia":26.1,"promCiclo":1.1,"pct1dia":76,"errores":3,"esBono":true,"bono":"SÍ","sucursales":{"total":275,"promCiclo":0.8,"pctCumpl":79},"cauquenes":{"total":90,"promCiclo":1.8,"pctCumpl":69}},{"nombre":"BG","total":457,"dias":14,"promDia":32.6,"promCiclo":2.5,"pct1dia":52,"errores":0,"esBono":false,"bono":"N/A","sucursales":{"total":227,"promCiclo":2.5,"pctCumpl":37},"cauquenes":{"total":230,"promCiclo":2.4,"pctCumpl":68}},{"nombre":"MELAMINA","total":35,"dias":10,"promDia":3.5,"promCiclo":1.4,"pct1dia":71,"errores":0,"esBono":false,"bono":"N/A","sucursales":{"total":33,"promCiclo":1.3,"pctCumpl":76},"cauquenes":{"total":2,"promCiclo":3.5,"pctCumpl":0}}],"erroresPorTipo":[{"tipo":"Producto equivocado","count":7},{"tipo":"Cantidad incorrecta","count":3},{"tipo":"Producto dañado","count":0},{"tipo":"No llegó (en guía)","count":1}],"seriesDiaria":[{"fecha":"2026-04-02","solicitados":0,"despachados":105},{"fecha":"2026-04-06","solicitados":0,"despachados":86},{"fecha":"2026-04-07","solicitados":0,"despachados":226},{"fecha":"2026-04-08","solicitados":0,"despachados":49},{"fecha":"2026-04-09","solicitados":0,"despachados":290},{"fecha":"2026-04-11","solicitados":0,"despachados":89},{"fecha":"2026-04-13","solicitados":0,"despachados":215},{"fecha":"2026-04-14","solicitados":0,"despachados":155},{"fecha":"2026-04-15","solicitados":0,"despachados":139},{"fecha":"2026-04-16","solicitados":0,"despachados":132},{"fecha":"2026-04-17","solicitados":0,"despachados":160},{"fecha":"2026-04-18","solicitados":0,"despachados":66},{"fecha":"2026-04-20","solicitados":0,"despachados":326},{"fecha":"2026-04-21","solicitados":348,"despachados":98}]};
+var OPC={'JULIAN':'#1a3a6b','ADRIAN':'#2d7a4f','SILVIO':'#7b3fa6','RAUL':'#b45a00','FABIAN':'#c62828','DEFAULT':'#546e7a'};
+function opc(n){return OPC[String(n||'').toUpperCase().split(' ')[0]]||OPC.DEFAULT;}
+function badge(v){if(v==null)return '<span class="b-neu">—</span>';if(v>=80)return '<span class="b-ok">'+v+'%</span>';if(v>=60)return '<span class="b-warn">'+v+'%</span>';return '<span class="b-bad">'+v+'%</span>';}
+function pctBar(v,c){if(v==null)return '<span class="b-neu">—</span>';var cls=v>=80?'b-ok':v>=60?'b-warn':'b-bad';return '<div class="pbar"><div class="pbar-bg"><div class="pbar-fill" style="width:'+Math.min(v,100)+'%;background:'+c+'"></div></div><span class="pval '+cls+'">'+v+'%</span></div>';}
+function ciclo(v){return v!=null?'<span style="font-weight:700">'+v+'</span> d':'<span class="b-neu">—</span>';}
+function kC(val,lbl,sub,c){return '<div class="kpi" style="--c:'+c+'"><div class="kpi-val">'+val+'</div><div class="kpi-lbl">'+lbl+'</div><div class="kpi-sub">'+sub+'</div></div>';}
+function sK(val,lbl,bg,tc){return '<div class="sub-kpi" style="background:'+bg+'"><div class="sub-kpi-val" style="color:'+tc+'">'+val+'</div><div class="sub-kpi-lbl" style="color:'+tc+'">'+lbl+'</div></div>';}
+function rk(i){if(i===0)return '<span class="rk1">🥇</span> ';if(i===1)return '<span class="rk2">🥈</span> ';if(i===2)return '<span class="rk3">🥉</span> ';return (i+1)+'. ';}
+function on(n,i){return '<span class="op-name">'+rk(i)+'<span class="op-dot" style="background:'+opc(n)+'"></span>'+n+'</span>';}
+function fmt(iso){if(!iso)return '—';try{var d=new Date(iso);return d.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});}catch(e){return iso;}}
+function wC(ops,key,f){var t=0,s=0;ops.forEach(function(o){var sec=o[key];if(!sec||!sec.total)return;t+=sec.total;s+=((sec[f]||0)*sec.total);});return t>0?(f==='pctCumpl'?Math.round(s/t):Math.round(s/t*10)/10):null;}
+(function(){
+var d=DATA,ops=d.operarios||[],serie=d.seriesDiaria||[];
+var mes=d.mesActual||'—',pend=d.totalPendientes!=null?d.totalPendientes:'—',limErr=d.limiteErrores||5;
+var totalDesp=d.totalSKUs||0,diasReg=d.diasRegistrados||0,promDia=d.promDia||0,cicloW=d.promCiclo,pctW=d.pct1dia,totalErr=d.totalErrores||0;
+var pendColor=typeof pend==='number'&&pend>100?'#c62828':typeof pend==='number'&&pend>50?'#b45a00':'#2d7a4f';
+var opsBono=ops.filter(function(o){return o.esBono;}),bonosOk=opsBono.filter(function(o){return o.bono==='SÍ';}).length;
+var sucTotal=ops.reduce(function(s,o){return s+((o.sucursales&&o.sucursales.total)||0);},0);
+var sucPct=wC(ops,'sucursales','pctCumpl'),sucCiclo=wC(ops,'sucursales','promCiclo');
+var caqTotal=ops.reduce(function(s,o){return s+((o.cauquenes&&o.cauquenes.total)||0);},0);
+var caqPct=wC(ops,'cauquenes','pctCumpl'),caqCiclo=wC(ops,'cauquenes','promCiclo');
+var h='';
+h+='<div class="header"><div class="hdr-logo"><div class="hdr-icon">🏭</div><div><div class="hdr-title">Dashboard Operaciones · DIMACO</div><div class="hdr-sub">Centro de Distribución Constitución · CDK9</div></div></div><div class="hdr-right"><div class="hdr-mes">'+mes+'</div><div class="hdr-upd">Generado: '+fmt(d.fecha)+'</div><div class="hdr-badge">📦 '+pend+' pedidos pendientes</div></div></div>';
+h+='<div class="sla-note"><strong>⚠ SLA por destino:</strong> Despachos a <strong>CAUQUENES</strong> = <strong>2 días hábiles</strong> (disponibilidad de vehículo). Resto de sucursales = <strong>1 día hábil</strong>. Aplica a todos los operarios.</div>';
+h+='<div class="sec-label">📊 Resumen General — '+mes+'</div><div class="kpi-grid">';
+h+=kC(totalDesp,'SKUs Despachados',mes,'#1a3a6b');
+h+=kC(diasReg,'Días con Actividad','en el período','#2d7a4f');
+h+=kC(promDia+' SKU','Promedio / Día','del centro','#7b3fa6');
+h+=kC(pend,'Pedidos Pendientes','sin despachar',pendColor);
+h+=kC(cicloW!=null?cicloW+' d':'—','T. Resp. Promedio','días hábiles','#b45a00');
+h+=kC(pctW!=null?pctW+'%':'—','Cumplimiento SLA','sucursales + cauquenes',pctW>=80?'#2d7a4f':pctW>=60?'#b45a00':'#c62828');
+h+=kC(totalErr,'Errores del Mes','total registrados',totalErr===0?'#2d7a4f':totalErr<=5?'#b45a00':'#c62828');
+h+=kC(bonosOk+'/'+opsBono.length,'Bonos Aprobados','operarios calificados',bonosOk===opsBono.length&&opsBono.length>0?'#2d7a4f':'#b45a00');
+h+='</div>';
+h+='<div class="chart-card"><div class="chart-title">📈 Flujo Diario — SKUs Solicitados vs Despachados</div><div class="chart-sub">Comportamiento del período · solicitados = líneas SAP del día · despachados = transferencias registradas</div><canvas id="c-flujo" height="85"></canvas></div>';
+h+='<div class="panel"><div class="panel-hdr" style="background:linear-gradient(90deg,#0d2147,#2a55a3)"><div class="panel-hdr-title">🏪 SUCURSALES — Plazo ≤ 1 Día Hábil</div><div class="panel-hdr-meta"><span>'+sucTotal+' despachos</span><span>'+(sucCiclo!=null?sucCiclo+' d prom.':'—')+'</span><span>'+(sucPct!=null?sucPct+'% cumpl.':'—')+'</span></div></div><div class="panel-body">';
+h+='<div class="panel-sub-kpis">'+sK(sucTotal,'Despachos','#f0f4ff','#1a3a6b')+sK(sucCiclo!=null?sucCiclo+' d':'—','T. Resp.','#fff8f0','#b45a00')+sK(sucPct!=null?sucPct+'%':'—','Cumpl. ≤1d',sucPct>=80?'#edfaf4':sucPct>=60?'#fff8f0':'#fff0f0',sucPct>=80?'#1b6b3a':sucPct>=60?'#b45a00':'#c62828')+'</div>';
+h+='<div class="tbl-wrap"><table><thead><tr><th>Operario</th><th>SKUs</th><th>Prom/día</th><th>T.Resp.</th><th>Cumpl.≤1d</th><th>Errores</th><th>Bono</th></tr></thead><tbody>';
+var sucOps=ops.filter(function(o){return o.sucursales&&o.sucursales.total>0;}).sort(function(a,b){return (b.sucursales.pctCumpl||0)-(a.sucursales.pctCumpl||0);});
+if(!sucOps.length){h+='<tr><td colspan="7" style="text-align:center;color:#aaa;font-style:italic;padding:16px">Sin despachos a sucursales en el período</td></tr>';}
+else sucOps.forEach(function(o,i){var s=o.sucursales,bH=o.esBono?(o.bono==='SÍ'?'<span class="bono-badge ok" style="font-size:10.5px">✓ SÍ</span>':'<span class="bono-badge no" style="font-size:10.5px">✗ NO</span>'):'<span class="b-neu">N/A</span>';h+='<tr><td>'+on(o.nombre,i)+'</td><td style="font-weight:700">'+s.total+'</td><td>'+(o.promDia!=null?o.promDia:'—')+'</td><td>'+ciclo(s.promCiclo)+'</td><td>'+pctBar(s.pctCumpl,'#1a3a6b')+'</td><td>'+(o.errores>0?'<span class="b-bad">'+o.errores+'</span>':'<span class="b-ok">0</span>')+'</td><td>'+bH+'</td></tr>';});
+h+='</tbody></table></div></div></div>';
+h+='<div class="panel"><div class="panel-hdr" style="background:linear-gradient(90deg,#004d40,#00897b)"><div class="panel-hdr-title">🚛 CAUQUENES — Plazo ≤ 2 Días Hábiles</div><div class="panel-hdr-meta"><span>'+caqTotal+' despachos</span><span>'+(caqCiclo!=null?caqCiclo+' d prom.':'—')+'</span><span>'+(caqPct!=null?caqPct+'% cumpl.':'—')+'</span></div></div><div class="panel-body">';
+h+='<div class="panel-sub-kpis">'+sK(caqTotal,'Despachos','#f0faf7','#00695c')+sK(caqCiclo!=null?caqCiclo+' d':'—','T. Resp.','#fff8f0','#b45a00')+sK(caqPct!=null?caqPct+'%':'—','Cumpl. ≤2d',caqPct>=80?'#edfaf4':caqPct>=60?'#fff8f0':'#fff0f0',caqPct>=80?'#1b6b3a':caqPct>=60?'#b45a00':'#c62828')+'</div>';
+h+='<div class="tbl-wrap"><table><thead><tr><th>Operario</th><th>SKUs</th><th>Prom/día</th><th>T.Resp.</th><th>Cumpl.≤2d</th><th>Errores</th></tr></thead><tbody>';
+var caqOps=ops.filter(function(o){return o.cauquenes&&o.cauquenes.total>0;}).sort(function(a,b){return (b.cauquenes.pctCumpl||0)-(a.cauquenes.pctCumpl||0);});
+if(!caqOps.length){h+='<tr><td colspan="6" style="text-align:center;color:#aaa;font-style:italic;padding:16px">Sin despachos a Cauquenes en el período</td></tr>';}
+else caqOps.forEach(function(o,j){var c2=o.cauquenes;h+='<tr><td>'+on(o.nombre,j)+'</td><td style="font-weight:700">'+c2.total+'</td><td>'+(o.promDia!=null?o.promDia:'—')+'</td><td>'+ciclo(c2.promCiclo)+'</td><td>'+pctBar(c2.pctCumpl,'#00695c')+'</td><td>'+(o.errores>0?'<span class="b-bad">'+o.errores+'</span>':'<span class="b-ok">0</span>')+'</td></tr>';});
+h+='</tbody></table></div></div></div>';
+h+='<div class="panel"><div class="panel-hdr" style="background:linear-gradient(90deg,#37474f,#607d8b)"><div class="panel-hdr-title">📋 Resumen por Operario</div></div><div class="panel-body"><div class="tbl-wrap"><table><thead><tr><th>Operario</th><th>Total SKUs</th><th>Prom/día</th><th>T.Resp.</th><th style="color:#1a3a6b">Suc ≤1d</th><th style="color:#00695c">Cauq ≤2d</th><th>Errores</th><th>Bono</th></tr></thead><tbody>';
+ops.forEach(function(op,k){var bH=op.esBono?(op.bono==='SÍ'?'<span class="bono-badge ok" style="font-size:10.5px">✓ SÍ</span>':'<span class="bono-badge no" style="font-size:10.5px">✗ NO</span>'):'<span class="b-neu">N/A</span>';h+='<tr><td>'+on(op.nombre,k)+'</td><td style="font-weight:700">'+op.total+'</td><td>'+(op.promDia!=null?op.promDia:'—')+'</td><td>'+ciclo(op.promCiclo)+'</td><td>'+(op.sucursales&&op.sucursales.total>0?pctBar(op.sucursales.pctCumpl,'#1a3a6b'):'<span class="b-neu">—</span>')+'</td><td>'+(op.cauquenes&&op.cauquenes.total>0?pctBar(op.cauquenes.pctCumpl,'#00695c'):'<span class="b-neu">—</span>')+'</td><td>'+(op.errores>0?'<span class="b-bad">'+op.errores+'</span>':'<span class="b-ok">0</span>')+'</td><td>'+bH+'</td></tr>';});
+h+='</tbody></table></div></div></div>';
+if(opsBono.length>0){h+='<div class="panel"><div class="panel-hdr" style="background:linear-gradient(90deg,#4a2880,#7b52b5)"><div class="panel-hdr-title">🏆 Estado de Bonos — '+bonosOk+' de '+opsBono.length+' aprobados</div></div><div class="panel-body"><div class="bono-grid">';opsBono.forEach(function(op){var ok=op.bono==='SÍ';h+='<div class="bono-card '+(ok?'ok':'no')+'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="bono-name" style="color:'+opc(op.nombre)+'">'+op.nombre+'</span><span class="bono-badge '+(ok?'ok':'no')+'">'+(ok?'✓ BONO':'✗ SIN BONO')+'</span></div><div class="bono-detail"><span>SKUs: <strong>'+op.total+'</strong></span><span>Errores: <strong style="color:'+(op.errores<=limErr?'#1b6b3a':'#c62828')+'">'+op.errores+'</strong> / límite '+limErr+'</span>'+(op.sucursales&&op.sucursales.total>0?'<span>Suc ≤1d: '+badge(op.sucursales.pctCumpl)+'</span>':'')+(op.cauquenes&&op.cauquenes.total>0?'<span>Cauq ≤2d: '+badge(op.cauquenes.pctCumpl)+'</span>':'')+'</div></div>';});h+='</div></div></div>';}
+h+='<div class="sec-label">📉 Análisis por Operario</div>';
+h+='<div class="chart-grid"><div class="chart-card" style="margin-bottom:0"><div class="chart-title">Producción — SKUs por operario</div><div class="chart-sub">Total del período</div><canvas id="c-prod" height="180"></canvas></div><div class="chart-card" style="margin-bottom:0"><div class="chart-title">Tiempo de respuesta promedio (días)</div><div class="chart-sub">Ciclo solicitud → despacho</div><canvas id="c-ciclo" height="180"></canvas></div></div>';
+h+='<div class="chart-grid" style="margin-top:16px"><div class="chart-card" style="margin-bottom:0"><div class="chart-title">Cumplimiento SLA — Sucursales vs Cauquenes</div><div class="chart-sub">% dentro del plazo por destino</div><canvas id="c-sla" height="180"></canvas></div><div class="chart-card" style="margin-bottom:0"><div class="chart-title">Errores por tipo — '+mes+'</div><div class="chart-sub">Distribución del período</div><canvas id="c-err" height="180"></canvas></div></div>';
+h+='<div class="footer">DIMACO Constitución · CDK9 · Sistema de Gestión de Rendimiento · '+new Date().getFullYear()+'</div>';
+document.getElementById('app').innerHTML=h;
+if(serie.length>0){new Chart(document.getElementById('c-flujo'),{type:'line',data:{labels:serie.map(function(s){var p=String(s.fecha||'').split('-');return p.length===3?p[2]+'/'+p[1]:s.fecha;}),datasets:[{label:'Solicitados',data:serie.map(function(s){return s.solicitados||0;}),borderColor:'#1a3a6b',backgroundColor:'rgba(26,58,107,0.08)',tension:0.35,fill:true,pointRadius:4,borderWidth:2.5},{label:'Despachados',data:serie.map(function(s){return s.despachados||0;}),borderColor:'#2d7a4f',backgroundColor:'rgba(45,122,79,0.08)',tension:0.35,fill:true,pointRadius:4,borderWidth:2.5}]},options:{responsive:true,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{font:{size:12},padding:16}}},scales:{y:{beginAtZero:true,grid:{color:'#f0f2f5'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11},maxRotation:45}}}}});}
+else{var fe=document.getElementById('c-flujo');if(fe)fe.insertAdjacentHTML('afterend','<div style="text-align:center;padding:20px;color:#b45a00;font-size:12px">Carga el SAP diario para ver flujo por día.</div>');}
+var oc=ops.filter(function(o){return (o.total||0)>0;}).sort(function(a,b){return (b.total||0)-(a.total||0);});
+if(oc.length)new Chart(document.getElementById('c-prod'),{type:'bar',data:{labels:oc.map(function(o){return o.nombre;}),datasets:[{label:'SKUs',data:oc.map(function(o){return o.total;}),backgroundColor:oc.map(function(o){return opc(o.nombre)+'cc';}),borderColor:oc.map(function(o){return opc(o.nombre);}),borderWidth:2,borderRadius:6}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{font:{size:11}}},y:{ticks:{font:{size:12,weight:'700'}}}}}});
+var oci=ops.filter(function(o){return o.promCiclo!=null;}).sort(function(a,b){return (a.promCiclo||0)-(b.promCiclo||0);});
+if(oci.length)new Chart(document.getElementById('c-ciclo'),{type:'bar',data:{labels:oci.map(function(o){return o.nombre;}),datasets:[{label:'días',data:oci.map(function(o){return o.promCiclo;}),backgroundColor:oci.map(function(o){return o.promCiclo<=1?'#2d7a4fcc':o.promCiclo<=2?'#b45a00cc':'#c62828cc';}),borderColor:oci.map(function(o){return o.promCiclo<=1?'#2d7a4f':o.promCiclo<=2?'#b45a00':'#c62828';}),borderWidth:2,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:Math.max(3,Math.max.apply(null,oci.map(function(o){return o.promCiclo||0;})))+0.5,ticks:{font:{size:11}}},x:{ticks:{font:{size:11}}}}}});
+var os2=ops.filter(function(o){return (o.sucursales&&o.sucursales.total>0)||(o.cauquenes&&o.cauquenes.total>0);});
+if(os2.length)new Chart(document.getElementById('c-sla'),{type:'bar',data:{labels:os2.map(function(o){return o.nombre;}),datasets:[{label:'Suc ≤1d (%)',data:os2.map(function(o){return o.sucursales&&o.sucursales.pctCumpl!=null?o.sucursales.pctCumpl:null;}),backgroundColor:'#1a3a6bcc',borderColor:'#1a3a6b',borderWidth:2,borderRadius:4},{label:'Cauq ≤2d (%)',data:os2.map(function(o){return o.cauquenes&&o.cauquenes.pctCumpl!=null?o.cauquenes.pctCumpl:null;}),backgroundColor:'#00695ccc',borderColor:'#00695c',borderWidth:2,borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12}}},scales:{y:{beginAtZero:true,max:105,ticks:{font:{size:11},callback:function(v){return v+'%';}}},x:{ticks:{font:{size:11}}}}}});
+var te=(d.erroresPorTipo||[]).filter(function(x){return x.count>0;}),ee=document.getElementById('c-err');
+if(te.length)new Chart(ee,{type:'doughnut',data:{labels:te.map(function(x){return x.tipo;}),datasets:[{data:te.map(function(x){return x.count;}),backgroundColor:['#a32d2d','#b45a00','#1a3a6b','#7b1fa2','#2d7a4f','#37474f','#00695c'],borderWidth:2}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:10.5},boxWidth:11,padding:10}}}}});
+else if(ee)ee.insertAdjacentHTML('afterend','<div style="text-align:center;padding:28px;color:#2d7a4f;font-weight:800;font-size:13px">✓ Sin errores registrados</div>');
+})();
+</script></body></html>
